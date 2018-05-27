@@ -13,7 +13,7 @@
 	[3]virtualenv env_site
 运行完上述命令之后，则会看到site_project目录下产生了env_site子目录，且子目录中包含了更多子文件，这些子文件实际是本地Python环境的副本，也就是上述所说的
 不影响本地软件配置依赖等信息而生成的。进入到Scripts目录下，开启active脚本
-	[4]active
+	[4]activate
 上述命令用于开启Python虚拟环境，接下来我们在Python虚拟环境中下载Django模块
 	[5]pip django
 由于Django依赖于其他模块，因为使用pip安装的时候会自动安装其他模块。

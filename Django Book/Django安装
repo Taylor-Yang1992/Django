@@ -1,0 +1,44 @@
+	本文主要记录Django的一些安装情况和个人体会。
+	由于Django基于Python编码，因此安装Django大致可以有如下三个步骤：1）安装Python；2）安装Python虚拟环境；3）安装Django模块。
+	正如之前所说，Django基于Python编码，里面包含了大量的Python库，且Django应用的具体实现也是基于Python，因此Python是最基本的安装软件，直接去Python
+官网下载对应系统的版本（下载3.X系列的版本），之所以下载3.X的版本是因为2.X和3.X的众多不兼容原因，且Django社区也宣布了停止支持2.X，因此最好安装Python
+的3.X系列。注意安装过程中最好勾上将Python PATH添加到环境变量。
+安装Python虚拟环境，这个有人说不是必须的，但是最好装上，并且Django Book上也强烈推荐。究其原因是因为众多软件/包等之间会有依赖性，通过使用Python虚拟环境
+可以创建一个Python解释器的副本，这样可以在副本中开启Django项目且不会影响本地系统上其他的软件配置等。安装Python包推荐的方式是使用pip安装，进入到命令行
+模式下，使用python -m install -U pip查看pip版本的信息，如果有必要则会自动更新pip版本，在cmd模式下键入以下命令：
+	[1]python -m install -U pip
+然后开始安装Python虚拟环境，即virtualenv，也是使用pip方式安装：
+	[2]pip virtualenv
+安装完上面两步后基本完成了一大半，下面开始Django的安装，首先创建工程文件site_project，在命令行模式下进入到site_projiect目录下新建虚拟环境：
+	[3]virtualenv env_site
+运行完上述命令之后，则会看到site_project目录下产生了env_site子目录，且子目录中包含了更多子文件，这些子文件实际是本地Python环境的副本，也就是上述所说的
+不影响本地软件配置依赖等信息而生成的。进入到Scripts目录下，开启active脚本
+	[4]active
+上述命令用于开启Python虚拟环境，接下来我们在Python虚拟环境中下载Django模块
+	[5]pip django
+由于Django依赖于其他模块，因为使用pip安装的时候会自动安装其他模块。
+	当上述操作完毕，可以使用import命令来查看是否Django安装成功
+	[6]import django
+	[7]django.get_version()
+	
+	不出意外，Django已经安装完毕，现在我们可以试一试刚刚安装的成效。如果是第一次创建应用，则需要进行一些初始化工作如配置、URL映射等，幸运地是，Django
+已经为我们做好了这些，在工程site_project目录下运行以下命令：
+	[8]django-admin startproject mysite
+上述命令创建了一个新的名为mysite的应用，在site_project目录下，这个有点类似于在Apache服务器下创建了一个新的应用，进入到mysite目录下可以发现里面包含了
+一些文件，其格式如下：
+mysite
+	manage.py
+	/mysite
+		__init__.py
+		setting.py
+		urls.py
+		wsgi.py
+最外层的mysite目录表明了这是一个应用，里面的manage.py脚本提供了多种方式让我们跟Django交互；里面的mysite目录则是一个可以导入的包，__init__.py是个
+空文件，暗示了这是一个包，setting.py包含了配置文件信息，urls.py包含了URL映射信息，而wsgi则提供了入口点。
+	需要注意的是，在使用Django之前，我们需要创建一些必要的数据库表，默认情况下Django提供了SQLite数据库，因为我们可以直接通过manage.py进行数据库表的
+创建：
+	[9]python manage.py migrate
+执行完上述命令之后，创建了一些必要的数据库表等信息，此时我们可以开启服务器了：
+	[10]python manage.py runserver
+如果不出意外的话，上述会出现成功信息，并告诉你开启的URL地址，默认为：127.0.0.1：8000，即开在8000端口上。可以用浏览器打开看看，应该是成功的，到现在，
+我们成功地创建了一个Django服务器。

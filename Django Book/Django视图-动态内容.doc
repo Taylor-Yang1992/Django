@@ -1,0 +1,36 @@
+  之前介绍的“Hello World”实际上是个静态视图内容，因为每次对hello的访问，都会产生相同的信息“Hello World”，因此本篇开始介绍动态内容信息。
+  相比简单朴素的“Hello World”文本信息，我们可以做的稍微有趣点，即输出服务器上的时钟信息（日期和时间），为此我们需要做两件事：1)计算当前日期和时间；
+2)返回HttpResponse的实例对象，然后将视图返回绑定到特定URL上。
+  首先我们在views.py文件中增加新的视图函数，加入以下代码：
+import datetime
+def current_datetime(request):
+    now = datetime.datetime.now()
+    html = "<html><body>It is %s.</body></html>" % now
+    return HttpResponse(html)
+  上述就是新的视图函数的全部内容，简单地说，就是导入了datetime模块，然后计算出了当前的日期和时间，然后以HTML的形式返回。接下来我们在urls.py文件中
+绑定URL到该视图函数，即在urlpattern中新加一项：
+path("time",views.current_datetime)
+在浏览器中输入127.0.0.1:8000/time，则可以看到网页输出了当前服务器的日期和时间消息。
+  关于Django中urlconf和view function这两部分，我们可以看出这两块是松耦合的，即更改URL名称不影响视图函数，而更改视图函数的逻辑实现也不影响URL，这是
+软件工程领域中最常使用的方法，即高内聚，低耦合。
+  上述例子中HttpResponse实现了动态，但是请求URL仍然是静态，我们可以稍作修改，使得请求URL和HttpResponse都是动态的。我们可能想要这样访问，如
+"time/plus/1"或者"time/plus/2"，因此我们可以使用url函数对请求URL进行字符串模式匹配：
+url(r"^time/plus/(\d{1,2})/$",views.hours_head)
+views.hours_head为新的视图函数，处理带有其他参数的请求：
+from django.http import Http404
+def hours_head(request,offset):
+    try:
+        offset = int(offset)
+    except ValueError:
+        raise Http404()
+    now = datetime.datetime.now() + datetime.timedelta(hours = offset)
+    html = "<html><body>It is %s.</body></html>" % now
+    return HttpResponse(html)
+上面代码中对非法数值进行了显示地404异常抛出。同时在urls.py文件中进行URL绑定,urls.py中的urlpattern中新增一个元素：
+url(r"^time/plus/(\d{1,2})/$",views.hours_head)
+  需要做出一点说明的是，在url中，被“()”包围的参数会作为字符串传递给视图函数，因此这相当于显示地指定了请求参数。有人会说为何不适用查询字符串如：
+time?hours=3这种，因为Django中推荐使用好看的URL模式，因此前者更为推荐。
+  Django的标准404错误页面是个很不错的信息提供源，当我们注释掉views.py中的hours_head方法中关于offset类型转换的代码段，我们可以清楚地看到一个页面
+错误404，该错误页面包含了错误类型，以及出错的代码位置及各种堆栈信息，方便调试处理。
+  上面做法有一个不好的地方，就是视图响应HttpResponse中逻辑代码和HTML代码混合在一起，没有达到松耦合的效果，这正是Django中模板的作用（Template），
+后面在继续接着对Templae展开学习和研究。

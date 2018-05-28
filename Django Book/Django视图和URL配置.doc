@@ -1,0 +1,37 @@
+  考虑一下，当我们不使用Web框架时我们该如何显示一个网页？我没呢一般分两步来做这件事。首先确定网页的内容，即HttpResponse，然后给该网页命名，即确定了 
+其地址（URL），然后将该网页放在开启的Web服务器下面，这样我们就可以通过浏览器进行访问了。在Django中，也是差不多的步骤，只是以不同的方式完成而已，
+响应内容HttpResponse由视图函数（view function）完成，而内容的地址（URL）则在urlconf中进行指定。这里我们仍以简单的打印“Hello World”为例进行阐述。
+首先建立视图函数views.py：
+views.py:
+from django.http import HttpResponse
+
+def hello(request):
+    return HttpResponse("Hello World")
+  这里说明一下：HttpResponse为响应体，每一个视图函数都必须拥有一个HttpResponse实例的返回值；hello为视图函数，确定了当某个指定URL到达时要调用的方法，
+视图函数至少有一个参数，且第一个参数必须为HttpRequest的实例，视图名称这儿可以随便起，最好见名知义。
+  现在我们已经有了视图函数，但是如果通过浏览器访问，仍然显示不出我们想看到的“Hello World”信息，这是因为我们没有指定与其匹配的URL。为了将视图函数与特定
+的URL绑定，我们需要配置urlconf，urlconf基本上就相当于是一个映射，将指定URL匹配到特定的视图函数，当我们使用Django-admin.py startproject开始新应用时，
+Django自动为我们创建了urlconf对象，即urls.py文件，该文件中的urlpatterns全局属性充当了urlconf的角色，打开urls.py文件我们可以看到开头的一系列说明，
+上面的是注释，说明了导入视图函数和类中函数的一般用法，注释内容下面有两行代码：
+from django.conf.urls import url,path,include
+from django.contrib import admin
+  url和path函数都是用来处理URL模式匹配的，只是path用于精确匹配而url则是可以进行通用匹配，include方法则是请求包含，即该URL得到的响应内容包含另一个URL
+的响应。admin是指以admin这URL进行访问时出现的响应页面，即127.0.0.1:8000/admin,实际上这相当于一个管理员登录页面。最后的也就是核心内容，即上面提到的
+urlpatterns变量，该变量包含了所有的URL与视图函数之间的映射，在这里加上自己的模块内视图函数
+from helloworld import views
+同时在urlpattern中加入该“HelloWorld”消息的视图函数映射：
+path("hello",views.hello)
+  现在我们成功地创建了视图函数views.hello，且在urls.py中更新了urlpatterns的内容，当打开浏览器访问127.0.0.1:8000/hello时则会出现“Hello World”那串
+经典的消息。这儿有必要对URL进行稍多的介绍：
+1：Django中进行URL匹配时会删除第一个“/”之前的内容，即去掉了主机信息，也就是说当输入127.0.0.1:8000/hello时，Django经过处理后得到的用于匹配的URL为
+hello，并且对于不包含在urlpatterns中的URL且不以“/”结尾的URL，会再次自动重定向到以“/”结尾的URL中进行访问，也就是说，当输入127.0.0.:8000/world时，
+由于world不在urlpatterns中，因此127.0.0.:8000/world/会再次被请求。
+2：url函数可以用于URL模式匹配，对于url("hello")，只要Django得到的URL中包含“hello”都会映射到该视图函数，即“hello”、“/world/hello”等都匹配成功，
+因此遥想匹配特定的“hello”，可以使用path("hello")或者url(r"^hello$")进行匹配。
+  这里涉及到了字符串正则匹配的使用，简单的正则表达式有：.代表任意单个字符；\d代表单个数字；[A-Z]代表大写字母；[a-z]代表小写字母；[A-Za-z]代表字母；
++代表1个以上；?代表0个或者1个；｛1，3｝代表1个到3个；*代表0个或者任意多个；[^/]+代表1个以上的字符知道遇到“/”，更多的字符串模式识别参看Python相关。
+  有必要说明一下的是，当开启新应用的使用，都是处于debug模式下，这意味着你的不合法URL到达时，Django会把urlpatterns中的URL和视图函数映射全部暴露出来，
+在生产环境中必须关闭debug模式，否则会出事故的。
+  有人可能会想Django是如何知道去从urls.py文件中读取URL和视图函数映射的呢？实际上当创建Django应用时，setting.py文件中就指定了这个信息，setting.py
+  文件指定了该项目的所有配置信息，如数据库名称、模版等，ROOT_URLCONF变量指明了哪个Python模块应当被导入作为该应用查找视图和URL映射的映射关系，这里是
+helloworld.ulrs这个模块。

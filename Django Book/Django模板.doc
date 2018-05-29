@@ -1,0 +1,55 @@
+  上篇结尾引入了Django模板的概念，Django模板的设计就是为了解决视图函数中HTML硬编码的问题。在视图函数中硬编码HTML文本不是一种明智的选择，原因如下：
+1)：对网页设计的更改都会要求对Python代码的更改，而网页的设计更改又是如此频繁；2)：对复杂网页来说，通常包含数百甚至更多行HTML代码，将这些代码放在Python
+代码中维护性不是很好；3)：HTML的设计以及Python代码的编写一般属于不同人员，这使得任务分配显得不合理；4)：如果能够同时进行Python代码和HTML代码的编写
+可能会更高效，即同步工作效率得到显著提高。
+  考虑到上述原因，我们应该将PYthon业务代码同HTML代码分离出来，而这就是Django中的模板(Template)系统。
+  Django模板是一些文本字符串，定义了文本展示与数据之间的隔离，在模板中有众多的占位符和其他基本逻辑来控制文本内容的展示，下面是一个简单的模板例子：
+<html>
+<head>
+    <title>Ordering notice</title>
+</head>
+<body>
+    <h1>Ordering notice</h1>
+    <p>Dear {{ person_name }},</p>
+    <p>Thanks for placing an order from {{ company }}. It's scheduled to ship on {{ s\
+hip_date|date:"F j, Y" }}.</p>
+    <p>Here are the items you've ordered:</p>
+    <ul>
+        {% for item in item_list %}
+        <li>{{ item }}</li>{% endfor %}
+    </ul>
+    {% if ordered_warranty %}
+    <p>Your warranty information will be included in the packaging.</p>
+    {% else %}
+    <p>
+        You didn't order a warranty, so you're on your own when the products inevitably stop working.
+    </p>
+    {% endif %}
+    <p>Sincerely,<br />{{ company }}</p>
+</body>
+</html>
+  上面简单的HTML模板中有几个符号需要解释一下，首先是{{variable}}这种形式的，这是模板中定义的变量；{% %}以这种格式开始的是特殊的标签，如里面的for
+标签和if标签等，这个有点类似于Python代码中的for和if语句；最后一个是|这种符号，这是过滤器标签，用来对左边的变量进行过滤处理，相当于Python代码里的过滤器
+函数，Django自带很多标签和过滤器，可以对常用的进行了解，也可以进行自定义。
+  Django定义了模板语言DTL(Django Template Language)，虽然你也可以在模板中使用其他第三方语言，但是还是推荐使用DTL，这样有许多好处。在我们继续下一步
+之前，我们稍微了解下模板如何工作的，这儿是在你的Python代码中使用Django模板最简单的方式：
+1：创建模板对象，并以字符串形式提供原始的模板代码
+2：在模板对象的上下文(Context)中传入需要的键值对，然后调用render()方法即可得到规整化的字符串模板代码
+举例如下:
+[1]from django import template
+[2]t = template.Template("My name is {{name}}.")
+[3]c = template.Context({"name":"Taylor"})
+[4]print(t.render(c)) #My name is Taylor
+  注意，上面的交互过程应该在manage.py shell这种方式下启动而不是在python模式下启动，因为前者会告诉Django选用哪个设置文件。这儿背后的原理是Django会去
+查找DJANGO_SETTINGS_MODULE变量，该变量在你的应用中一般会设置为helloworld.setting（对我的而言），如果找不到该变量，则会抛出异常。
+template模块位于django包中，定义了一系列基本类和函数，如Template类和Context类，可用于创建模板和上下文，通过向模板的render()方法提供上下文，可以得到
+规整化之后的文本信息。Template类有一个唯一的构造函数参数，即为原始的模板代码；Context则需要一个字典参数，提供了模版所需要的键值对，当render()
+方法被调用时，Django引擎会自动在模版和上下文之间进行参数匹配，若变量没有在Context中找到，则使用默认值（默认为空，在setting.py文件string_if_invalid
+参数处进行指定，当然也可以自定义指定）。变量中的.操作符有特殊的语义，可以进行字典、属性、方法及列表索引查找，其查找顺序如下：
+1)：在字典中进行查找
+2)：在属性中进行查找
+3)：在方法中进行查找
+4)：在列表索引中进行查找
+在上面四种查找方式中遇到第一个查找成功的则停止。这儿在方法和列表索引查找中有些需要注意：在列表索引中索引值不能为负值，这跟Python中的列表索引有所区别；
+在方法中查找时，方法不能带有参数，否则会跳到下一步在列表索引中进行查找。另外，如果查找到方法且运行方法时，如果方法抛出了异常，则异常会向上传播而不是
+简单忽略，除非异常中显示指定了silent_variable_failure=True。

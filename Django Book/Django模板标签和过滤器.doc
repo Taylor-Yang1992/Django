@@ -1,0 +1,33 @@
+  Django模板提供了许多内置的标签和过滤器，标签均以{% %}作为标识，而过滤器则是在变量之后加上 | （即管道符号）作为标识，标签用来进行特定的展示处理，
+如逻辑判断、循环等，而过滤器则是对变量被展示前进行操作，使得展示的为操作之后的变量而非原始变量。下面列举了一些常用的标签和过滤器。
+  Tags：
+  if else标签：
+  {% if %}/{% endif %}标签可以用来进行条件判断，比如:
+{% if variable %}
+  It is True
+{% endif %}
+当然还有可选的else以及elif选项等：
+{% if variable%}
+  It is True
+{% elif ...%}
+  ...
+{% elif ...%}
+  ...
+{% else %}
+  ...
+{% endif%}
+if标签内可以用and or和not进行修饰，如{% if var1 and var2 and var3%}、{% if var1 or var2 %}/{% if var1 and not var2 %}等。除此之外if标签还
+支持in/not in 和is/not is比较操作，is操作相当于=，not is 则相当于！=。
+  For标签：
+  另一个常用的是for标签，语义如下{% for x in y %}或者{% for x in y reversed%}，前者正向遍历，而后者反向遍历；for标签支持可选的empty格式，用来对
+for循环的主体变量为空时进行的操作，即{% empty %}，这有点跟Python中的for循环类似，但是明显不同的是for标签不支持break和continue语义，因此循环一旦开始，
+只能全部进行。for标签中定义了一个有用的变量称之为forloop，利用该变量可以获得遍历时的一些信息，如counter，该属性是一个指示位置的属性，不过从1开始，
+counter0则是从0开始；revcounter则是一个指示还剩多少元素未遍历的整数值，也是从1开始，revcounter0则是从0开始；first和last则指明了是否是第一个元素和最后
+一个元素；而parentloop则指向了上层父循环中forloop的引用。
+  comment：
+  可以用{# ... #}来表明单行注释，但是这对于跨行注释则显得不行，对于跨行注释，可以使用如下语法{% comment %}/{% endcomment %}。
+  过滤器Filter：
+  过滤器用来修改变量对外展示的方式，以管道符号“|”作为标识，且过滤器可以级联，即一个过滤器的输出可以作为另一个过滤器的输入，过滤器也可以有参数，这一点
+不同于.操作的方法查找，.查找到的方法不能有参数，而过滤器可以有，其语义如下：variable | filter:"arg"，参数必须跟在:后面也被引号引起来。常用的过滤器有
+addslashes：用来在反斜杠、单引号、双引号后面加上反斜杠，一般用来字符串转义；date则是用来对date和datetime对象进行事件处理，可以查看详细清单了解更多
+过滤器的例子和用法。

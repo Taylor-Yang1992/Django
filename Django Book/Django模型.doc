@@ -1,0 +1,44 @@
+  在介绍Django的模型之前，我们稍微区分下Django中project和app的区别，app是一个功能独立的模块，可以包含模型，视图等；而project则是一个应用，不仅可以
+包含多个app还可以包含这些app的基本设置，对于Django动态网站来说，模型必须放置于app包下面。
+
+  模型一般都会跟数据库打交道，Django中把模型自动跟数据库关联起来。之前介绍的在helloworld目录下执行：python manage.py migrate 时，Django就新建了
+sqlite3类型的数据库并自动建立了一些系统必要表，可以在setting.py文件中查看数据库信息：DATABASES变量，通过该变量我们可以看出Django默认使用sqlite3
+作为数据库，且定义了数据库的默认名称。
+
+  现在开始我们的第一个app，并在app中建立我们自己的模型。
+  
+  正如上面介绍的，Django中app是一个代表Django完整应用的Python包，里面包含了一些模型和视图文件等，由于为单独Python包的缘故，app具有可重用性。实际上，
+如果动态网站足够简单的话，我们都可以不用app，直接在应用中写视图函数(views.py)、简历模版文件等，然而如果想在Django中使用数据库，则必须要建立app，模型
+必须在app中，且模型跟数据库表相一致。为了开始下一步，让我们先创建一个简单的app。在hellowrold应用目录下开启一个简单的app：
+python manage.py startapp books
+上面这条命令在应用helloworld目录下新建了一个book包，可以查看该包里的目录结构，发现里面有views.py和models.py等文件，这些文件实际上就是对应着模型和视图
+函数的模块文件。
+
+  下面讨论如何在app中建立模型，Django中的模型是数据库中数据的描述，组织成类的形式用Python代码加以描述。按Django Book中book/author/publisher这个模型
+举例，在books下面的models.py中输入以下模型代码：
+class Publisher(models.Model):
+    name = models.CharField(max_length=30)
+    address = models.CharField(max_length=50)
+    city = models.CharField(max_length=60)
+    state_province = models.CharField(max_length=30)
+    country = models.CharField(max_length=50)
+    website = models.URLField()
+
+class Author(models.Model):
+    first_name = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=40)
+    email = models.EmailField()
+
+class Book(models.Model):
+    title = models.CharField(max_length=100)
+    authors = models.ManyToManyField(Author)
+    publisher = models.ForeignKey(Publisher,on_delete=models.CASCADE)
+    publication_date = models.DateField()
+注意上面所有的模型都继承了django.db中的models.Model类，该类为模型跟数据库之间的交互提供了极大地便利。每一个模型通常和数据库表相对应，而模型中的
+数据字段跟数据库表的列名相对于，同时模型的数据类型也反应了表中列的类型信息，模型数据名称则是列的名称，有一点需要说明的是，上面各个模型中我们并没有定义
+主键，默认情况下Django会为每个模型自动创建一个名称为id的主键。
+
+    为了在数据库中创建这些表，我们首先需要注册激活这些模型，在setting.py文件中找到INSTALLED_APPS变量，然后在其中将books.apps.BooksConfig加入其中，
+  现在我们已经完成了模型注册过程，值创建数据库表之前，让我们检查一下模型的正确性：python manage.py check，如果检查通过，可以进行如下命令进行模型
+  整合更新：python manage.py makemigrations books，该命令会在migrations文件夹下产生相应的更新文件，最后我们可以使用
+  python manage.py migrate命令将这些改变全部整合到数据库中去。

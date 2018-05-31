@@ -1,0 +1,35 @@
+  Django自动提供了admin网站的登录和管理功能，可以登录127.0.0.1:8000/admin进行登录访问。
+
+  在登录到该网站之前，需要创建超级管理员帐号：python manage.py createsuperuser，后面按照提示一步步的继续下去，记住你的帐号名称和密码，然后登录到上
+述网站，可以看出Django自动为我们创建了Group和User两类，Group和User类似于Windows中的用户和组管理，Group定义了若干组，每组可用于不同的权限访问许可，这
+适合用于对特定集合的用户进行操作；而User则是用户操作，可以增加和更改用户，同时赋予用户的权限许可等。
+
+  我们发现之前我们创建的app并没有在admin网站上体现出来，这是因为我们并没有将app注册到admin.site.register上，进入books包下，在admin.py中进行app注册：
+[1]from .models import Publisher,Author,Book
+[2]admin.site.register(Publisher)
+[3]admin.site.register(Author)
+[4]admin.site.register(Book)
+admin.site.register接受第二个可选的参数ModelAdmin，该参数可用于让admin对特定模型进行特定展示和定制，后面进一步阐述。admin对每个模型有两种处理模式，
+第一种是模型提供配置，而admin只负责展示；另一种则是针对每一个模型，admin提供特定的展示。
+
+  对于第一种情况，设置均在模型曾，以Author举例，我们可以设置Author的email为空，即在book.models中：
+class Author(models.Model):
+    ...
+    email = models.EmailField(blank = True,null = True)
+  blank = True意味着该字符串可以为“”值，而null = True则表明该值可以为Null；一般情况下admin中显示的标签名即为属性的名称，可以使用verbose_name关键字
+  参数来更改这一设置，如：email = models.EmailField(blank = True,null = True,erbose_name = "E-mail").
+  
+    第二种情况则是在book.admin中进行设置，即对每一个模型都给与特定的配置，配置类均扩展ModelAdmin类，常用的配置有：
+[1]class AuthorAdmin(admin.ModelAdmin):
+[2]   list_display = ("a","b",...)
+[3]   search_field = ("a","b"..)
+[4]   list_filter = ("a",b",...)
+[5]   ordering = ("a","b",...)
+[6]   fields = ("a","b",...)
+[7]   filter_horizontal = ("a",...)
+[8]   filter_vertical = ("a",..)
+[9]   raw_id_field = ("a",..)
+list_display表明了对每个模型需要展示的属性信息；search_field则对每个模型多了一个查找框，可以进行指定属性上的关键字查找；list_filter则实现了对特定属性
+的过滤选项，在右侧列表中有所体现；ordering则实现了排序，带“-”实现逆序；fields实现了需要修改/增加模型时出现的填充内容及顺序；filter_horizontal及
+filter_vertical用在多对多的键上，默认的是在下拉列表中进行多选，当多选条目变得很多时，可以使用这种方式将可选的条目（available）选中到选中面板中
+（chosen），这两者的区别在于一个是水平放置一个垂直放置，注意该字段仅用于多对多的键；raw_id_field则用于外部键，根据id进行选取。
